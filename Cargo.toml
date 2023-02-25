@@ -1,0 +1,19 @@
+[package]
+name = "hypothesis"
+version = "0.0.1"
+authors = ["azusachino <azusachino@duck.com>"]
+edition = "2021"
+readme = "README.md"
+license-file = "LICENSE"
+repository = "https://github.com/azusachino/hypothesis"
+
+[dependencies]
+anyhow = "1.0"
+clap = {version = "4.1", features = ["derive"]}
+lazy_static = "1.4"
+reqwest = { version = "0.11", features = ["socks"] }
+serde = "1.0"
+serde_derive = "1.0"
+tokio = { version = "1.25", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
