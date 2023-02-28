@@ -1,3 +1,4 @@
+mod konachan;
 mod yandere;
 
 use chrono::NaiveDate;
@@ -9,7 +10,8 @@ pub enum DownloadType {
     // which month
     PopByMonth(NaiveDate, NaiveDate),
     // how many pages
-    ByTag(u32),
+    ByTag(String, u32),
+    ById(String),
     Random(u32),
 }
 
