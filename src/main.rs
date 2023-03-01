@@ -3,7 +3,8 @@ use hypothesis::Result;
 use tracing_subscriber::EnvFilter;
 
 #[derive(Parser)]
-struct Args {
+#[command(author, version, about, long_about = None)]
+struct Cli {
     
 }
 

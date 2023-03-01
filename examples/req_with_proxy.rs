@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
         .proxy(proxy)
         .build()?;
     // let url = "https://files.yande.re/image/d5c188416d08dc1db9805167e5fd5017/yande.re%201064485%20breasts%20genshin_impact%20houkiboshi_%28mmjw7432%29%20nipples%20no_bra%20sangonomiya_kokomi%20see_through%20seifuku%20shirt_lift%20thighhighs%20valentine.jpg";
-    let url = "https://youtube.com";
+    let url = "https://yande.re";
     let ret = client.get(url).send().await?;
     println!("{}", ret.status());
     println!("Body: {}", ret.text().await?);

@@ -5,34 +5,45 @@ use std::{
 };
 
 use crate::Result;
-use lazy_static::lazy_static;
+
 const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36";
 
-lazy_static! {
-    static ref REQ_CLIENT: reqwest::Client = reqwest::Client::builder()
-    .user_agent(UA)
-    .use_rustls_tls()
-    // escape some mysterious tls problem
-    .danger_accept_invalid_certs(true)
-    // in case big files
-    .tcp_keepalive(Duration::from_secs(10))
-    .proxy(reqwest::Proxy::all("socks5://172.0.0.1:30808").expect("fail to init proxy"))
-    .build()
-    .expect("fail to build req client");
+pub struct Util {
+    client: reqwest::Client,
 }
 
-pub async fn download_to_target(url: &str, path: &str) -> Result<()> {
-    let res = REQ_CLIENT.get(url).send().await?;
-    match res.status() {
-        reqwest::StatusCode::OK => {
-            let f = OpenOptions::new().create(true).write(true).open(path)?;
-            let mut w_buf = BufWriter::new(&f);
-            let data = res.bytes().await?;
-            w_buf.write_all(&data)?;
-            Ok(())
-        }
-        _ => {
-            anyhow::bail!("fail to fetch data from web")
+impl Util {
+    pub fn new() -> Self {
+        let proxy = reqwest::Proxy::all("socks5://127.0.0.1:30808").expect("fail to init proxy");
+        let client = reqwest::Client::builder()
+            .connection_verbose(true)
+            // in case big files
+            .connect_timeout(Duration::from_secs(10))
+            .user_agent(UA)
+            // escape some mysterious tls problem
+            .danger_accept_invalid_certs(true)
+            .use_rustls_tls()
+            // .tcp_keepalive(Duration::from_secs(10))
+            .proxy(proxy)
+            .build()
+            .expect("fail to build req client");
+
+        Self { client }
+    }
+
+    pub async fn download_to_target(&self, url: &str, path: &str) -> Result<()> {
+        let res = self.client.get(url).send().await?;
+        match res.status() {
+            reqwest::StatusCode::OK => {
+                let f = OpenOptions::new().create(true).write(true).open(path)?;
+                let mut w_buf = BufWriter::new(&f);
+                let data = res.bytes().await?;
+                w_buf.write_all(&data)?;
+                Ok(())
+            }
+            _ => {
+                anyhow::bail!("fail to fetch data from web")
+            }
         }
     }
 }
@@ -40,7 +51,7 @@ pub async fn download_to_target(url: &str, path: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
 
-    use super::download_to_target;
+    use super::Util;
 
     #[test]
     fn test() {
@@ -50,8 +61,9 @@ mod tests {
             .enable_all()
             .build()
             .expect("fail to build rt");
+        let util = Util::new();
 
-        rt.block_on(download_to_target(URL, path))
+        rt.block_on(util.download_to_target(URL, path))
             .expect("fail to exec task");
     }
 }

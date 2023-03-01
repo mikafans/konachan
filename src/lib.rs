@@ -3,4 +3,4 @@ mod utils;
 
 // declare crate usage
 pub use anyhow::{bail, Result};
-pub use utils::download_to_target;
+pub use utils::Util;
