@@ -7,7 +7,7 @@ const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (
 async fn main() -> anyhow::Result<()> {
     std::env::set_var("RUST_LOG", "trace");
     // proxy all traffic to the passed URL
-    let proxy = reqwest::Proxy::all("socks5://127.0.0.1:30808")?;
+    let proxy = reqwest::Proxy::all("socks5h://127.0.0.1:30808")?;
     let client = reqwest::Client::builder()
         // .default_headers(header)
         .user_agent(UA)

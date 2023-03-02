@@ -1,10 +1,10 @@
+use crate::Result;
+use scraper::{Html, Selector};
 use std::{
     fs::OpenOptions,
     io::{BufWriter, Write},
     time::Duration,
 };
-
-use crate::Result;
 
 const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36";
 
@@ -13,25 +13,45 @@ pub struct Util {
 }
 
 impl Util {
-    pub fn new() -> Self {
-        let proxy = reqwest::Proxy::all("socks5://127.0.0.1:30808").expect("fail to init proxy");
-        let client = reqwest::Client::builder()
-            .connection_verbose(true)
+    pub fn new(socks5: Option<String>) -> Self {
+        let mut builder = reqwest::Client::builder()
+            // .connection_verbose(true)
             // in case big files
             .connect_timeout(Duration::from_secs(10))
             .user_agent(UA)
-            // escape some mysterious tls problem
-            .danger_accept_invalid_certs(true)
             .use_rustls_tls()
-            // .tcp_keepalive(Duration::from_secs(10))
-            .proxy(proxy)
-            .build()
-            .expect("fail to build req client");
+            // escape some mysterious tls problem
+            .danger_accept_invalid_certs(true);
+
+        if let Some(socks5) = socks5 {
+            let socks_url = format!("socks5h://{socks5}");
+            let proxy = reqwest::Proxy::all(socks_url).expect("fail to init proxy");
+            builder = builder.proxy(proxy);
+        }
+
+        let client = builder.build().expect("fail to build req client");
 
         Self { client }
     }
 
-    pub async fn download_to_target(&self, url: &str, path: &str) -> Result<()> {
+    pub async fn download_by_show(&self, url: &str, path: &str) -> Result<()> {
+        let body = self.client.get(url).send().await?.text().await?;
+        let doc = Html::parse_document(&body);
+        let png_selector = Selector::parse("#png").expect("fail to parse selecor");
+        let highres_selector = Selector::parse("#highres").expect("fail to parse selecor");
+
+        for elm in doc.select(&png_selector) {
+            tracing::info!("png {:?}", elm.value());
+        }
+
+        for elm in doc.select(&highres_selector) {
+            tracing::info!("highres {:?}", elm.value());
+        }
+
+        Ok(())
+    }
+
+    async fn download_to_target(&self, url: &str, path: &str) -> Result<()> {
         let res = self.client.get(url).send().await?;
         match res.status() {
             reqwest::StatusCode::OK => {
@@ -61,9 +81,23 @@ mod tests {
             .enable_all()
             .build()
             .expect("fail to build rt");
-        let util = Util::new();
+        let util = Util::new(Some("127.0.0.1:30808".to_owned()));
 
         rt.block_on(util.download_to_target(URL, path))
+            .expect("fail to exec task");
+    }
+
+    #[test]
+    fn test_show() {
+        let show_url = "https://yande.re/post/show/1064594";
+        let path = "sample.png";
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("fail to build rt");
+        let util = Util::new(Some("127.0.0.1:30808".to_owned()));
+
+        rt.block_on(util.download_by_show(show_url, path))
             .expect("fail to exec task");
     }
 }

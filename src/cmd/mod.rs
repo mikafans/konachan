@@ -1,26 +1,68 @@
 mod konachan;
 mod yandere;
 
-use chrono::NaiveDate;
-use clap::{Subcommand, Args};
+use crate::{async_trait, lazy_static, Result};
+use clap::{Args, Subcommand, ValueEnum};
 
-// #[derive(Subcommand)]
-pub enum Commands {
-    Yandere(DownloadType),
-    Konanchan(DownloadType)
+// default download location
+lazy_static! {
+    pub(crate) static ref TO_DEFAULT: &'static str = ".";
+    pub(crate) static ref TIME_FMT: &'static str = "%Y%m%d";
 }
 
-// #[derive(Args)]
+/**
+ * Fetcher Trait, defines the general concept of downloading
+ */
+#[async_trait]
+trait Fetcher {
+    /**
+     * fetch content to local
+     */
+    async fn fetch(args: DownloadArgs) -> Result<()>;
+}
+
+#[derive(Clone, Subcommand)]
+pub enum Commands {
+    Yandere(DownloadArgs),
+    Konanchan(DownloadArgs),
+}
+
+#[derive(Args, Clone)]
+pub struct DownloadArgs {
+    // by which way
+    #[arg(value_enum)]
+    by: DownloadType,
+    // download to where
+    #[arg(short, long)]
+    to: Option<String>,
+
+    // show id
+    id: Option<String>,
+    // download limit
+    #[arg(short, long)]
+    limit: Option<u16>,
+
+    // start end period (yyyyMMdd)
+    #[arg(short, long)]
+    start: Option<String>,
+    #[arg(short, long)]
+    end: Option<String>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum DownloadType {
-    // how long (period)
-    PopByDay(NaiveDate, NaiveDate),
-    // PopByWeek(Instant, Instant),
-    // which month
-    PopByMonth(u8,u8),
-    // how many pages
-    ByTag(String, u32),
-    ById(String),
-    Random(u32),
+    // download image by Id
+    Id,
+    // download by daily popular
+    Day,
+    // download by weekly popular
+    Week,
+    // download by monthly popular
+    Month,
+    // download by specific tag
+    Tag,
+    // download in random style
+    Random,
 }
 
 #[cfg(test)]
