@@ -1,6 +1,9 @@
 mod konachan;
 mod yandere;
 
+pub use konachan::KonachanFetcher;
+pub use yandere::YandereFetcher;
+
 use crate::{async_trait, lazy_static, Result};
 use clap::{Args, Subcommand, ValueEnum};
 
@@ -14,11 +17,11 @@ lazy_static! {
  * Fetcher Trait, defines the general concept of downloading
  */
 #[async_trait]
-trait Fetcher {
+pub trait Fetcher {
     /**
      * fetch content to local
      */
-    async fn fetch(args: DownloadArgs) -> Result<()>;
+    async fn fetch(&self, args: DownloadArgs) -> Result<()>;
 }
 
 #[derive(Clone, Subcommand)]
@@ -31,22 +34,22 @@ pub enum Commands {
 pub struct DownloadArgs {
     // by which way
     #[arg(value_enum)]
-    by: DownloadType,
+    pub by: DownloadType,
     // download to where
     #[arg(short, long)]
-    to: Option<String>,
+    pub to: Option<String>,
 
     // show id
-    id: Option<String>,
+    pub id: Option<String>,
     // download limit
     #[arg(short, long)]
-    limit: Option<u16>,
+    pub limit: Option<u16>,
 
     // start end period (yyyyMMdd)
     #[arg(short, long)]
-    start: Option<String>,
+    pub start: Option<String>,
     #[arg(short, long)]
-    end: Option<String>,
+    pub end: Option<String>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]

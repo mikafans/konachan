@@ -1,5 +1,8 @@
 use clap::Parser;
-use hypothesis::{Commands, Result, Util};
+use hypothesis::{
+    cmd::{Fetcher, YandereFetcher, KonachanFetcher},
+    Commands, Result, Util,
+};
 use tracing_subscriber::EnvFilter;
 
 #[derive(Parser)]
@@ -19,10 +22,19 @@ async fn main() -> Result<()> {
         .with_env_filter(EnvFilter::from_default_env())
         .init();
     let cli = Cli::parse();
-    let _util = Util::new(cli.socks);
 
     tracing::info!("happy to help you download something");
 
-    // util.download_to_target("https://imgproxy.nanxiongnandi.com/T8_tj5C0WvZr9lCA4GUCVIOtAUqeJJ5tk1NYzUmaiY0/w:1920/q:100/att:1/aHR0cHM6Ly9pbWcu/bmFueGlvbmduYW5k/aS5jb20vMjAyMzAy/L0F0cmFuaUFtYWxm/aS5qcGc.jpg", "sample.jpg").await?;
+let util= Util::new(cli.socks);
+    match cli.cmd {
+        Commands::Yandere(args) => {
+            let yf = YandereFetcher::new(util);
+            yf.fetch(args).await?;
+        }
+        Commands::Konanchan(args) => {
+            let cf = KonachanFetcher::new(util);
+            cf.fetch(args).await?;
+        }
+    }
     Ok(())
 }

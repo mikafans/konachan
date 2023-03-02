@@ -34,28 +34,36 @@ impl Util {
         Self { client }
     }
 
-    pub async fn download_by_show(&self, url: &str, path: &str) -> Result<()> {
+    pub async fn download_by_show(&self, url: &str, file_path: &str) -> Result<()> {
         let body = self.client.get(url).send().await?.text().await?;
         let doc = Html::parse_document(&body);
         let png_selector = Selector::parse("#png").expect("fail to parse selecor");
         let highres_selector = Selector::parse("#highres").expect("fail to parse selecor");
 
-        for elm in doc.select(&png_selector) {
-            tracing::info!("png {:?}", elm.value());
-        }
-
-        for elm in doc.select(&highres_selector) {
-            tracing::info!("highres {:?}", elm.value());
+        // try to download png first
+        if let Some(png) = doc.select(&png_selector).next() {
+            if let Some(file_url) = png.value().attr("href") {
+                self.download_to_target(file_url, file_path).await?
+            }
+        } else if let Some(jpg) = doc.select(&highres_selector).next() {
+            if let Some(file_url) = jpg.value().attr("href") {
+                self.download_to_target(file_url, file_path).await?
+            }
+        } else {
+            anyhow::bail!("fail to find download entry")
         }
 
         Ok(())
     }
 
-    async fn download_to_target(&self, url: &str, path: &str) -> Result<()> {
+    async fn download_to_target(&self, url: &str, file_path: &str) -> Result<()> {
         let res = self.client.get(url).send().await?;
         match res.status() {
             reqwest::StatusCode::OK => {
-                let f = OpenOptions::new().create(true).write(true).open(path)?;
+                let f = OpenOptions::new()
+                    .create(true)
+                    .write(true)
+                    .open(file_path)?;
                 let mut w_buf = BufWriter::new(&f);
                 let data = res.bytes().await?;
                 w_buf.write_all(&data)?;
@@ -89,8 +97,9 @@ mod tests {
 
     #[test]
     fn test_show() {
-        let show_url = "https://yande.re/post/show/1064594";
-        let path = "sample.png";
+        // let show_url = "https://yande.re/post/show/1064594";
+        let show_url = "https://konachan.com/post/show/353306";
+        let path = "sample1.png";
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
