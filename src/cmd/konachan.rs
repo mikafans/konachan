@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 
-use super::{DownloadArgs, DownloadType, Fetcher, TO_DEFAULT};
-use crate::{async_trait, Result, Util};
+use super::{DownloadArgs, DownloadType, TO_DEFAULT};
+use crate::{Result, Util};
 
 lazy_static! {
     static ref URL: &'static str = "https://konachan.com";
@@ -15,11 +15,7 @@ impl KonachanFetcher {
     pub fn new(util: Util) -> Self {
         Self { util }
     }
-}
-
-#[async_trait]
-impl Fetcher for KonachanFetcher {
-    async fn fetch(&self, args: DownloadArgs) -> Result<()> {
+    pub async fn fetch(&self, args: DownloadArgs) -> Result<()> {
         let to_path = if let Some(to) = args.to {
             to
         } else {
@@ -29,7 +25,7 @@ impl Fetcher for KonachanFetcher {
             DownloadType::Id => match args.id {
                 Some(id) => {
                     let url = format!("{}/post/show/{}", URL.to_owned(), id);
-                    // self.util.download_by_show(&url, &to_path).await;
+                    return self.util.download_by_show(&url, &to_path).await;
                 }
                 None => anyhow::bail!("please provide valid id for download"),
             },
@@ -39,6 +35,5 @@ impl Fetcher for KonachanFetcher {
             DownloadType::Tag => todo!(),
             DownloadType::Random => todo!(),
         }
-        Ok(())
     }
 }

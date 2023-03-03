@@ -43,20 +43,19 @@ impl Util {
         // try to download png first
         if let Some(png) = doc.select(&png_selector).next() {
             if let Some(file_url) = png.value().attr("href") {
-                self.download_to_target(file_url, file_path).await?
+                let path = format!("{}.png", file_path);
+                return self.download_to_target(file_url, &path).await;
             }
         } else if let Some(jpg) = doc.select(&highres_selector).next() {
             if let Some(file_url) = jpg.value().attr("href") {
-                self.download_to_target(file_url, file_path).await?
+                let path = format!("{}.jpg", file_path);
+                return self.download_to_target(file_url, &path).await;
             }
-        } else {
-            anyhow::bail!("fail to find download entry")
         }
-
-        Ok(())
+        anyhow::bail!("fail to find download entry")
     }
 
-    async fn download_to_target(&self, url: &str, file_path: &str) -> Result<()> {
+    pub async fn download_to_target(&self, url: &str, file_path: &str) -> Result<()> {
         let res = self.client.get(url).send().await?;
         match res.status() {
             reqwest::StatusCode::OK => {

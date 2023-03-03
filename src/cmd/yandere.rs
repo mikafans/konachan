@@ -1,10 +1,11 @@
+use std::path;
+
+use super::{DownloadArgs, DownloadType, TO_DEFAULT};
+use crate::{Result, Util};
 use lazy_static::lazy_static;
 
-use super::{DownloadArgs, DownloadType, Fetcher, TO_DEFAULT};
-use crate::{async_trait, Result, Util};
-
 lazy_static! {
-    static ref URL: &'static str = "https://yande.re";
+    static ref ENDPOINT: &'static str = "https://yande.re";
 }
 
 pub struct YandereFetcher {
@@ -15,21 +16,20 @@ impl YandereFetcher {
     pub fn new(util: Util) -> Self {
         Self { util }
     }
-}
 
-#[async_trait]
-impl Fetcher for YandereFetcher {
-    async fn fetch(&self, args: DownloadArgs) -> Result<()> {
+    pub async fn fetch(&self, args: DownloadArgs) -> Result<()> {
         let to_path = if let Some(to) = args.to {
             to
         } else {
             TO_DEFAULT.to_string()
         };
+
         match args.by {
             DownloadType::Id => match args.id {
                 Some(id) => {
-                    let url = format!("{}/post/show/{}", URL.to_owned(), id);
-                    // self.util.download_by_show(&url, &to_path).await;
+                    let url = format!("{}/post/show/{}", ENDPOINT.to_owned(), id);
+                    let path = format!("{}{}{}", to_path, path::MAIN_SEPARATOR, id);
+                    return self.util.download_by_show(&url, &path).await;
                 }
                 None => anyhow::bail!("please provide valid id for download"),
             },
@@ -39,6 +39,5 @@ impl Fetcher for YandereFetcher {
             DownloadType::Tag => todo!(),
             DownloadType::Random => todo!(),
         }
-        Ok(())
     }
 }

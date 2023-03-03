@@ -1,6 +1,6 @@
 use clap::Parser;
 use hypothesis::{
-    cmd::{Fetcher, YandereFetcher, KonachanFetcher},
+    cmd::{KonachanFetcher, YandereFetcher},
     Commands, Result, Util,
 };
 use tracing_subscriber::EnvFilter;
@@ -25,7 +25,7 @@ async fn main() -> Result<()> {
 
     tracing::info!("happy to help you download something");
 
-let util= Util::new(cli.socks);
+    let util = Util::new(cli.socks);
     match cli.cmd {
         Commands::Yandere(args) => {
             let yf = YandereFetcher::new(util);
