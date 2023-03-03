@@ -18,16 +18,18 @@ impl YandereFetcher {
     }
 
     pub async fn fetch(&self, args: DownloadArgs) -> Result<()> {
-        let to_path = if let Some(to) = args.to {
+        let to_path = if let Some(to) = args.location {
             to
         } else {
             TO_DEFAULT.to_string()
         };
 
+        let prefix = ENDPOINT.to_owned();
+
         match args.by {
             DownloadType::Id => match args.id {
                 Some(id) => {
-                    let url = format!("{}/post/show/{}", ENDPOINT.to_owned(), id);
+                    let url = format!("{}/post/show/{}", &prefix, id);
                     let path = format!("{}{}{}", to_path, path::MAIN_SEPARATOR, id);
                     return self.util.download_by_show(&url, &path).await;
                 }
@@ -36,8 +38,30 @@ impl YandereFetcher {
             DownloadType::Day => todo!(),
             DownloadType::Week => todo!(),
             DownloadType::Month => todo!(),
-            DownloadType::Tag => todo!(),
-            DownloadType::Random => todo!(),
+            DownloadType::Tag => {
+                if let (Some(tag), Some(pages)) = (args.tag, args.pages) {
+                    let mut v: Vec<(String, String)> = Vec::new();
+                    for i in 1..pages {
+                        let url = format!("{}/post?page={}&tags={}", &prefix, i, tag);
+                        let mut current = self.util.extract_hrefs(&url, &prefix).await?;
+                        v.append(&mut current);
+                    }
+                    for (u, id) in v {
+                        let path = format!("{}{}{}", to_path, path::MAIN_SEPARATOR, id);
+                        self.util.download_by_show(&u, &path).await?
+                    }
+                    Ok(())
+                } else {
+                    anyhow::bail!("tag or pages not found")
+                }
+            }
+            DownloadType::Random => match args.pages {
+                Some(pages) => {
+                    for _ in 1..pages {}
+                    Ok(())
+                }
+                None => anyhow::bail!("do you really need unlimited images?"),
+            },
         }
     }
 }
