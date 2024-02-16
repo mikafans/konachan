@@ -16,7 +16,7 @@ impl KonachanFetcher {
         Self { util }
     }
     pub async fn fetch(&self, args: DownloadArgs) -> Result<()> {
-        let to_path = if let Some(to) = args.to {
+        let to_path = if let Some(to) = args.location {
             to
         } else {
             TO_DEFAULT.to_string()

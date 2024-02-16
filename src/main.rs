@@ -1,5 +1,5 @@
 use clap::Parser;
-use hypothesis::{
+use konachan::{
     cmd::{KonachanFetcher, YandereFetcher},
     Commands, Result, Util,
 };
@@ -27,11 +27,11 @@ async fn main() -> Result<()> {
 
     let util = Util::new(cli.socks);
     match cli.cmd {
-        Commands::Yandere(args) => {
+        Commands::Y(args) => {
             let yf = YandereFetcher::new(util);
             yf.fetch(args).await?;
         }
-        Commands::Konanchan(args) => {
+        Commands::K(args) => {
             let cf = KonachanFetcher::new(util);
             cf.fetch(args).await?;
         }

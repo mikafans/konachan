@@ -1,25 +1,26 @@
 [package]
-name = "hypothesis"
+name = "konachan"
 version = "0.0.1"
 authors = ["azusachino <azusachino@duck.com>"]
 edition = "2021"
 readme = "README.md"
 license-file = "LICENSE"
-repository = "https://github.com/azusachino/hypothesis"
+repository = "https://github.com/mikafans/konachan"
+description = "an util based on tokio & reqwest to download images from yandere/konachan by tag, date-range and ID."
 
 [dependencies]
-anyhow = "1.0"
+anyhow = "1"
 async-trait = "0.1"
 chrono = "0.4"
-clap = { version = "4.1", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
 lazy_static = "1.4"
-reqwest = { version = "0.11.14", features = [
+reqwest = { version = "0.11", features = [
     "socks",
     "rustls-tls-native-roots",
 ] }
-scraper = "0.15"
-serde = "1.0"
-serde_derive = "1.0"
-tokio = { version = "1.25", features = ["full"] }
+scraper = "0.18"
+serde = "1"
+serde_derive = "1"
+tokio = { version = "1.36", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

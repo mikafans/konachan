@@ -4,7 +4,7 @@ mod yandere;
 pub use konachan::KonachanFetcher;
 pub use yandere::YandereFetcher;
 
-use crate::{async_trait, lazy_static, Result};
+use crate::lazy_static;
 use clap::{Args, Subcommand, ValueEnum};
 
 // default download location
@@ -16,18 +16,13 @@ lazy_static! {
 /**
  * Fetcher Trait, defines the general concept of downloading
  */
-#[async_trait]
-pub trait Fetcher {
-    /**
-     * fetch content to local
-     */
-    async fn fetch(&self, args: DownloadArgs) -> Result<()>;
-}
 
 #[derive(Clone, Subcommand)]
 pub enum Commands {
-    Yandere(DownloadArgs),
-    Konanchan(DownloadArgs),
+    // Download from Yandere
+    Y(DownloadArgs),
+    // Download from Konanchan
+    K(DownloadArgs),
 }
 
 #[derive(Args, Clone)]
@@ -37,13 +32,17 @@ pub struct DownloadArgs {
     pub by: DownloadType,
     // download to where
     #[arg(short, long)]
-    pub to: Option<String>,
+    pub location: Option<String>,
 
     // show id
     pub id: Option<String>,
-    // download limit
+
+    // tag
     #[arg(short, long)]
-    pub limit: Option<u16>,
+    pub tag: Option<String>,
+    // download pages
+    #[arg(short, long)]
+    pub pages: Option<u16>,
 
     // start end period (yyyyMMdd)
     #[arg(short, long)]

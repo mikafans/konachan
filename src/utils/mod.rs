@@ -33,6 +33,20 @@ impl Util {
 
         Self { client }
     }
+    pub async fn extract_hrefs(&self, url: &str, prefix: &str) -> Result<Vec<(String, String)>> {
+        let body = self.client.get(url).send().await?.text().await?;
+        let doc = Html::parse_document(&body);
+        let img_selector = Selector::parse("a.thumb").expect("fail to parse selecor");
+        let mut v: Vec<(String, String)> = Vec::new();
+        for elm in doc.select(&img_selector).into_iter() {
+            if let Some(href) = elm.value().attr("href") {
+                // split contains leading space
+                let id = href.split('/').nth(3).expect("unknown href style");
+                v.push((format!("{}{}", prefix, href), id.to_owned()));
+            }
+        }
+        Ok(v)
+    }
 
     pub async fn download_by_show(&self, url: &str, file_path: &str) -> Result<()> {
         let body = self.client.get(url).send().await?.text().await?;
@@ -107,5 +121,12 @@ mod tests {
 
         rt.block_on(util.download_by_show(show_url, path))
             .expect("fail to exec task");
+    }
+
+    #[test]
+    fn split() {
+        let s = "/post/show/1067681";
+        let v: Vec<_> = s.split('/').collect();
+        println!("{:?}", v);
     }
 }
