@@ -6,6 +6,7 @@ edition = "2021"
 readme = "README.md"
 license-file = "LICENSE"
 repository = "https://github.com/mikafans/konachan"
+description = "an util based on tokio & reqwest to download images from yandere/konachan by tag, date-range and ID."
 
 [dependencies]
 anyhow = "1"
