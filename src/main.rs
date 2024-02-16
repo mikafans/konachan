@@ -1,5 +1,5 @@
 use clap::Parser;
-use hypothesis::{
+use konachan::{
     cmd::{KonachanFetcher, YandereFetcher},
     Commands, Result, Util,
 };
